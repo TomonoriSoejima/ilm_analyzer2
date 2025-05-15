@@ -11,6 +11,10 @@ export function TransformStatsView({ stats, config }: TransformStatsViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedTransforms, setExpandedTransforms] = useState<Set<string>>(new Set());
 
+  const getTransformConfig = (transformId: string) => {
+    return config?.transforms.find(transform => transform.id === transformId);
+  };
+
   if (!stats) {
     return (
       <div className="text-center py-12">
