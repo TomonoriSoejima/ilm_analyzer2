@@ -1,7 +1,18 @@
 import React, { useCallback } from 'react';
 import { Upload, FileUp, Loader2, Database } from 'lucide-react';
 import JSZip from 'jszip';
-import type { ILMErrors, ILMPolicies, VersionInfo, ShardInfo, AllocationExplanation, NodesStatsResponse, PipelineConfigs, MLAnomalyDetectors, TransformStats } from '../types';
+import type { 
+  ILMErrors, 
+  ILMPolicies, 
+  VersionInfo, 
+  ShardInfo, 
+  AllocationExplanation, 
+  NodesStatsResponse, 
+  PipelineConfigs, 
+  MLAnomalyDetectors, 
+  TransformStats,
+  TransformConfigResponse 
+} from '../types';
 
 interface FileUploadProps {
   onDataLoaded: (
@@ -14,7 +25,8 @@ interface FileUploadProps {
     nodesStats?: NodesStatsResponse,
     pipelines?: PipelineConfigs,
     mlDetectors?: MLAnomalyDetectors,
-    transformStats?: TransformStats
+    transformStats?: TransformStats,
+    transformConfig?: TransformConfigResponse
   ) => void;
 }
 
@@ -37,7 +49,6 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
       setIsLoading(true);
       setError(null);
 
-      console.log('Starting to process ZIP file...');
       const zip = new JSZip();
       const contents = await zip.loadAsync(file);
       
@@ -51,10 +62,8 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
       let pipelinesJson = null;
       let mlDetectorsJson = null;
       let transformStatsJson = null;
+      let transformConfigJson = null;
       const foundFiles: string[] = [];
-
-      // Debug: Log all files in the ZIP
-      console.log('Files in ZIP:', Object.keys(contents.files));
 
       // Process all files
       for (const [path, zipEntry] of Object.entries(contents.files)) {
@@ -63,23 +72,25 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
         const normalizedPath = path.toLowerCase();
         console.log('Processing file:', normalizedPath);
 
+        // Only attempt to parse JSON for files with .json extension
+        if (!normalizedPath.endsWith('.json')) {
+          console.log(`Skipping non-JSON file: ${normalizedPath}`);
+          continue;
+        }
+
         try {
           const content = await zipEntry.async('string');
           
-          // Debug: Log file content length
-          console.log(`File ${normalizedPath} content length:`, content.length);
-          
-          // Only attempt to parse JSON for files with .json extension
-          if (!normalizedPath.endsWith('.json')) {
-            console.log(`Skipping non-JSON file: ${normalizedPath}`);
-            continue;
-          }
-
           try {
             const json = JSON.parse(content);
-            console.log(`Successfully parsed JSON for ${normalizedPath}`);
 
-            if (normalizedPath.includes('ilm_explain_only_errors.json')) {
+            if (normalizedPath.includes('transform_stats.json')) {
+              transformStatsJson = json;
+              foundFiles.push('Transform Stats');
+            } else if (normalizedPath.includes('transform.json')) {
+              transformConfigJson = json;
+              foundFiles.push('Transform Config');
+            } else if (normalizedPath.includes('ilm_explain_only_errors.json')) {
               errorsJson = json;
               foundFiles.push('ILM Errors');
             } else if (normalizedPath.includes('ilm_policies.json')) {
@@ -106,12 +117,8 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
             } else if (normalizedPath.includes('ml_anomaly_detectors.json')) {
               mlDetectorsJson = json;
               foundFiles.push('ML Anomaly Detectors');
-            } else if (normalizedPath.includes('transform_stats.json')) {
-              transformStatsJson = json;
-              foundFiles.push('Transform Stats');
             }
           } catch (parseError) {
-            // Only log parsing errors for JSON files
             console.error(`Failed to parse JSON for ${normalizedPath}:`, parseError);
           }
         } catch (err) {
@@ -168,7 +175,8 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
         nodesStatsJson,
         pipelinesJson,
         mlDetectorsJson,
-        transformStatsJson
+        transformStatsJson,
+        transformConfigJson
       );
     } catch (err) {
       console.error('ZIP processing error:', err);
@@ -241,7 +249,8 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
         nodesStatsJson,
         pipelinesJson,
         null, // ML data is only available from diagnostic ZIP
-        transformStatsJson
+        transformStatsJson,
+        null // Transform config is only available from diagnostic ZIP
       );
     } catch (err) {
       setError('Failed to load demo data');
