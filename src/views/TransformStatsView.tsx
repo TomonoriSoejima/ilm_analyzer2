@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Search, Activity, AlertTriangle, ChevronDown, ChevronRight, Clock, Database } from 'lucide-react';
-import type { TransformStats } from '../types';
+import type { TransformStats, TransformConfigResponse } from '../types';
 
 interface TransformStatsViewProps {
   stats: TransformStats | null;
+  config: TransformConfigResponse | null;
 }
 
-export function TransformStatsView({ stats }: TransformStatsViewProps) {
+export function TransformStatsView({ stats, config }: TransformStatsViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedTransforms, setExpandedTransforms] = useState<Set<string>>(new Set());
 
@@ -50,6 +51,11 @@ export function TransformStatsView({ stats }: TransformStatsViewProps) {
 
   const formatDuration = (ms: number) => {
     return `${(ms / 1000).toFixed(2)}s`;
+  };
+
+  const getTransformConfig = (transformId: string) => {
+    if (!config) return null;
+    return config.transforms.find(t => t.id === transformId);
   };
 
   return (
@@ -122,6 +128,70 @@ export function TransformStatsView({ stats }: TransformStatsViewProps) {
 
             {expandedTransforms.has(transform.id) && (
               <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                {/* Configuration Information */}
+                {getTransformConfig(transform.id) && (
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                      Transform Configuration
+                    </h4>
+                    <div className="space-y-4">
+                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                        <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Source</h5>
+                        <div className="space-y-2">
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Indices:</span>
+                            <div className="mt-1 flex flex-wrap gap-2">
+                              {getTransformConfig(transform.id)?.source.index.map((idx, i) => (
+                                <span key={i} className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full">
+                                  {idx}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                        <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Destination</h5>
+                        <div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Index:</span>
+                          <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">
+                            {getTransformConfig(transform.id)?.dest.index}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                        <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sync Configuration</h5>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Time Field:</span>
+                            <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">
+                              {getTransformConfig(transform.id)?.sync.time.field}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Delay:</span>
+                            <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">
+                              {getTransformConfig(transform.id)?.sync.time.delay}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                        <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Settings</h5>
+                        <div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Max Page Search Size:</span>
+                          <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">
+                            {getTransformConfig(transform.id)?.settings.max_page_search_size}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Node Information */}
                 <div className="mb-6">
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
