@@ -11,6 +11,10 @@ export function TransformStatsView({ stats, config }: TransformStatsViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedTransforms, setExpandedTransforms] = useState<Set<string>>(new Set());
 
+  const getTransformConfig = (transformId: string) => {
+    return config?.transforms.find(transform => transform.id === transformId);
+  };
+
   if (!stats) {
     return (
       <div className="text-center py-12">
@@ -45,13 +49,13 @@ export function TransformStatsView({ stats, config }: TransformStatsViewProps) {
     return new Intl.NumberFormat().format(num);
   };
 
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString();
-  };
-
-  const getTransformConfig = (transformId: string) => {
-    if (!config) return null;
-    return config.transforms.find(t => t.id === transformId);
+  const formatDuration = (ms: number) => {
+    if (ms < 1000) return `${ms}ms`;
+    const seconds = ms / 1000;
+    if (seconds < 60) return `${seconds.toFixed(1)}s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}m ${Math.round(remainingSeconds)}s`;
   };
 
   return (
@@ -85,6 +89,8 @@ export function TransformStatsView({ stats, config }: TransformStatsViewProps) {
       <div className="space-y-4">
         {filteredTransforms.map((transform) => {
           const transformConfig = getTransformConfig(transform.id);
+          const operationsBehind = transform.checkpointing.operations_behind || 0;
+          
           return (
             <div key={transform.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
               <button
@@ -114,6 +120,11 @@ export function TransformStatsView({ stats, config }: TransformStatsViewProps) {
                       }`}>
                         {transform.health.status}
                       </span>
+                      {operationsBehind > 0 && (
+                        <span className="px-2 py-1 text-xs rounded-full bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300">
+                          {formatNumber(operationsBehind)} ops behind
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -126,6 +137,114 @@ export function TransformStatsView({ stats, config }: TransformStatsViewProps) {
 
               {expandedTransforms.has(transform.id) && (
                 <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                  {/* Processing Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
+                        Documents
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Processed:</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {formatNumber(transform.stats.documents_processed)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Indexed:</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {formatNumber(transform.stats.documents_indexed)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Deleted:</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {formatNumber(transform.stats.documents_deleted)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
+                        Performance
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Index Time:</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {formatDuration(transform.stats.index_time_in_ms)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Search Time:</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {formatDuration(transform.stats.search_time_in_ms)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Processing Time:</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {formatDuration(transform.stats.processing_time_in_ms)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
+                        Operations
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Pages:</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {formatNumber(transform.stats.pages_processed)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Triggers:</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {formatNumber(transform.stats.trigger_count)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Behind:</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {formatNumber(operationsBehind)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Exponential Averages */}
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mb-6">
+                    <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
+                      Exponential Averages
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Checkpoint Duration:</span>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {formatDuration(transform.stats.exponential_avg_checkpoint_duration_ms)}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Documents Indexed:</span>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {formatNumber(Math.round(transform.stats.exponential_avg_documents_indexed))}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Documents Processed:</span>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {formatNumber(Math.round(transform.stats.exponential_avg_documents_processed))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Transform Configuration */}
                   {transformConfig && (
                     <div className="space-y-4">
@@ -139,16 +258,6 @@ export function TransformStatsView({ stats, config }: TransformStatsViewProps) {
                       </div>
                     </div>
                   )}
-
-                  {/* Statistics */}
-                  <div className="mt-6">
-                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                      Transform Statistics
-                    </h4>
-                    <pre className="text-sm font-mono text-gray-700 dark:text-gray-300 whitespace-pre-wrap overflow-auto bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                      {JSON.stringify(transform, null, 2)}
-                    </pre>
-                  </div>
                 </div>
               )}
             </div>
