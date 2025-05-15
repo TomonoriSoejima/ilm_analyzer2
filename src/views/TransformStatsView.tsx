@@ -128,89 +128,6 @@ export function TransformStatsView({ stats, config }: TransformStatsViewProps) {
 
             {expandedTransforms.has(transform.id) && (
               <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                {/* Configuration Information */}
-                {getTransformConfig(transform.id) && (
-                  <div className="mb-6">
-                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                      Transform Configuration
-                    </h4>
-                    <div className="space-y-4">
-                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                        <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Source</h5>
-                        <div className="space-y-2">
-                          <div>
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Indices:</span>
-                            <div className="mt-1 flex flex-wrap gap-2">
-                              {getTransformConfig(transform.id)?.source.index.map((idx, i) => (
-                                <span key={i} className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full">
-                                  {idx}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                        <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Destination</h5>
-                        <div>
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Index:</span>
-                          <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">
-                            {getTransformConfig(transform.id)?.dest.index}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                        <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sync Configuration</h5>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Time Field:</span>
-                            <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">
-                              {getTransformConfig(transform.id)?.sync.time.field}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Delay:</span>
-                            <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">
-                              {getTransformConfig(transform.id)?.sync.time.delay}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                        <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Settings</h5>
-                        <div>
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Max Page Search Size:</span>
-                          <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">
-                            {getTransformConfig(transform.id)?.settings.max_page_search_size}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Node Information */}
-                <div className="mb-6">
-                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                    Node Information
-                  </h4>
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-600 dark:text-gray-400">Node:</span>
-                        <span className="ml-2 text-gray-900 dark:text-gray-100">{transform.node.name}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600 dark:text-gray-400">Transport Address:</span>
-                        <span className="ml-2 text-gray-900 dark:text-gray-100">{transform.node.transport_address}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Statistics */}
                 <div className="mb-6">
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
@@ -286,7 +203,7 @@ export function TransformStatsView({ stats, config }: TransformStatsViewProps) {
                 </div>
 
                 {/* Checkpointing Information */}
-                <div>
+                <div className="mb-6">
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                     Checkpointing Information
                   </h4>
@@ -315,6 +232,20 @@ export function TransformStatsView({ stats, config }: TransformStatsViewProps) {
                     </div>
                   </div>
                 </div>
+
+                {/* Full Configuration */}
+                {getTransformConfig(transform.id) && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                      Full Configuration
+                    </h4>
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                      <pre className="text-sm font-mono text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                        {JSON.stringify(getTransformConfig(transform.id), null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
