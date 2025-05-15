@@ -409,8 +409,12 @@ export function SegmentsAnalysis({ data }: SegmentsAnalysisProps) {
                   }`}>
                     {issue.description}
                   </p>
-                  <div className="mt-2 text-sm font-medium">
-                    Recommended action: {issue.action}
+                  <div className={`mt-2 text-sm font-medium ${
+                    issue.severity === 'high'
+                      ? 'text-red-900 dark:text-red-200'
+                      : 'text-amber-900 dark:text-amber-200'
+                  }`}>
+                    Recommended action: <span className="font-bold">{issue.action}</span>
                   </div>
                 </div>
               ))}
