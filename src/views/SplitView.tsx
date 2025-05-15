@@ -14,7 +14,18 @@ import { IngestPipelineView } from './IngestPipelineView';
 import { ILMView } from './ILMView';
 import { MLAnomalyDetectorsView } from './MLAnomalyDetectorsView';
 import { TransformStatsView } from './TransformStatsView';
-import type { ILMErrors, ILMPolicies, VersionInfo, ShardInfo, AllocationExplanation, NodesStatsResponse, PipelineConfigs, MLAnomalyDetectors, TransformStats } from '../types';
+import type { 
+  ILMErrors, 
+  ILMPolicies, 
+  VersionInfo, 
+  ShardInfo, 
+  AllocationExplanation, 
+  NodesStatsResponse, 
+  PipelineConfigs, 
+  MLAnomalyDetectors, 
+  TransformStats,
+  TransformConfigResponse 
+} from '../types';
 
 export function SplitView() {
   const [errors, setErrors] = useState<ILMErrors | null>(null);
@@ -28,6 +39,7 @@ export function SplitView() {
   const [pipelines, setPipelines] = useState<PipelineConfigs | null>(null);
   const [mlDetectors, setMlDetectors] = useState<MLAnomalyDetectors | null>(null);
   const [transformStats, setTransformStats] = useState<TransformStats | null>(null);
+  const [transformConfig, setTransformConfig] = useState<TransformConfigResponse | null>(null);
   const location = useLocation();
 
   const handleDataLoaded = (
@@ -40,7 +52,8 @@ export function SplitView() {
     nodesStatsData?: NodesStatsResponse,
     pipelinesData?: PipelineConfigs,
     mlDetectorsData?: MLAnomalyDetectors,
-    transformStatsData?: TransformStats
+    transformStatsData?: TransformStats,
+    transformConfigData?: TransformConfigResponse
   ) => {
     setErrors(errorsData);
     setPolicies(policiesData);
@@ -52,6 +65,7 @@ export function SplitView() {
     if (pipelinesData) setPipelines(pipelinesData);
     if (mlDetectorsData) setMlDetectors(mlDetectorsData);
     if (transformStatsData) setTransformStats(transformStatsData);
+    if (transformConfigData) setTransformConfig(transformConfigData);
   };
 
   if (!errors || !policies) {
@@ -288,7 +302,12 @@ export function SplitView() {
           <Route path="/pipeline" element={nodesStats && <IngestPipelineView stats={nodesStats} pipelines={pipelines || undefined} />} />
           <Route path="/ilm" element={<ILMView policies={policies} />} />
           <Route path="/ml" element={<MLAnomalyDetectorsView detectors={mlDetectors} />} />
-          <Route path="/transforms" element={<TransformStatsView stats={transformStats} />} />
+          <Route path="/transforms" element={
+            <TransformStatsView 
+              stats={transformStats} 
+              config={transformConfig}
+            />
+          } />
         </Routes>
       </div>
     </div>
