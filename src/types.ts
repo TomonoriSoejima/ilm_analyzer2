@@ -393,3 +393,58 @@ export interface TransformStats {
     };
   }>;
 }
+
+export interface TransformConfig {
+  authorization: {
+    roles: string[];
+  };
+  create_time: number;
+  dest: {
+    index: string;
+  };
+  id: string;
+  pivot: {
+    aggregations: {
+      [key: string]: {
+        value_count?: {
+          field: string;
+        };
+        [key: string]: any;
+      };
+    };
+    group_by: {
+      [key: string]: {
+        terms?: {
+          field: string;
+        };
+        date_histogram?: {
+          calendar_interval: string;
+          field: string;
+          time_zone: string;
+        };
+      };
+    };
+  };
+  settings: {
+    max_page_search_size: number;
+    [key: string]: any;
+  };
+  source: {
+    index: string[];
+    query: {
+      match_all?: {};
+      [key: string]: any;
+    };
+  };
+  sync: {
+    time: {
+      delay: string;
+      field: string;
+    };
+  };
+  version: string;
+}
+
+export interface TransformConfigResponse {
+  transforms: TransformConfig[];
+}
