@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { AlertTriangle, Database, LayoutDashboard, Cog, Activity, Clock, Server, Brain, Tractor as Transform } from 'lucide-react';
+import { AlertTriangle, Database, LayoutDashboard, Cog, Activity, Clock, Server, Brain, Tractor as Transform, FileText } from 'lucide-react';
 import { IndexCard } from '../components/IndexCard';
 import { PolicyDetails } from '../components/PolicyDetails';
 import { PolicySummary } from '../components/PolicySummary';
@@ -14,6 +14,7 @@ import { IngestPipelineView } from './IngestPipelineView';
 import { ILMView } from './ILMView';
 import { MLAnomalyDetectorsView } from './MLAnomalyDetectorsView';
 import { TransformStatsView } from './TransformStatsView';
+import { SegmentsView } from './SegmentsView';
 import type { 
   ILMErrors, 
   ILMPolicies, 
@@ -40,6 +41,7 @@ export function SplitView() {
   const [mlDetectors, setMlDetectors] = useState<MLAnomalyDetectors | null>(null);
   const [transformStats, setTransformStats] = useState<TransformStats | null>(null);
   const [transformConfig, setTransformConfig] = useState<TransformConfigResponse | null>(null);
+  const [segmentsData, setSegmentsData] = useState<any>(null);
   const location = useLocation();
 
   const handleDataLoaded = (
@@ -53,7 +55,8 @@ export function SplitView() {
     pipelinesData?: PipelineConfigs,
     mlDetectorsData?: MLAnomalyDetectors,
     transformStatsData?: TransformStats,
-    transformConfigData?: TransformConfigResponse
+    transformConfigData?: TransformConfigResponse,
+    segmentsData?: any
   ) => {
     setErrors(errorsData);
     setPolicies(policiesData);
@@ -66,6 +69,7 @@ export function SplitView() {
     if (mlDetectorsData) setMlDetectors(mlDetectorsData);
     if (transformStatsData) setTransformStats(transformStatsData);
     if (transformConfigData) setTransformConfig(transformConfigData);
+    if (segmentsData) setSegmentsData(segmentsData);
   };
 
   if (!errors || !policies) {
@@ -131,6 +135,17 @@ export function SplitView() {
               >
                 <Database className="w-4 h-4 inline-block mr-2" />
                 Shards
+              </Link>
+              <Link
+                to="/segments"
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  location.pathname === '/segments'
+                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <FileText className="w-4 h-4 inline-block mr-2" />
+                Segments
               </Link>
               <Link
                 to="/settings"
@@ -213,6 +228,7 @@ export function SplitView() {
                     setPipelines(null);
                     setMlDetectors(null);
                     setTransformStats(null);
+                    setSegmentsData(null);
                   }}
                   className="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 border border-blue-600 dark:border-blue-400 hover:border-blue-800 dark:hover:border-blue-300 rounded-md"
                 >
@@ -271,6 +287,19 @@ export function SplitView() {
           } />
           <Route path="/dashboard" element={<Dashboard errors={errors} policies={policies} />} />
           <Route path="/shards" element={<ShardsView shards={shards} allocation={allocation} />} />
+          <Route path="/segments" element={segmentsData ? (
+            <SegmentsView segmentsData={segmentsData} />
+          ) : (
+            <div className="text-center py-12">
+              <FileText className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                Segments Data Not Available
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                No segments information is available in the uploaded diagnostic data.
+              </p>
+            </div>
+          )} />
           <Route path="/settings" element={settings ? (
             <SettingsView settings={settings} />
           ) : (

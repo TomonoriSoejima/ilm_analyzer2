@@ -26,7 +26,8 @@ interface FileUploadProps {
     pipelines?: PipelineConfigs,
     mlDetectors?: MLAnomalyDetectors,
     transformStats?: TransformStats,
-    transformConfig?: TransformConfigResponse
+    transformConfig?: TransformConfigResponse,
+    segmentsData?: any
   ) => void;
 }
 
@@ -63,6 +64,7 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
       let mlDetectorsJson = null;
       let transformStatsJson = null;
       let transformConfigJson = null;
+      let segmentsJson = null;
       const foundFiles: string[] = [];
 
       // Process all files
@@ -102,6 +104,9 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
             } else if (normalizedPath.includes('shards.json')) {
               shardsJson = json;
               foundFiles.push('Shards Info');
+            } else if (normalizedPath.includes('segments.json')) {
+              segmentsJson = json;
+              foundFiles.push('Segments Info');
             } else if (normalizedPath.includes('allocation_explain.json')) {
               allocationJson = json;
               foundFiles.push('Allocation Info');
@@ -176,7 +181,8 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
         pipelinesJson,
         mlDetectorsJson,
         transformStatsJson,
-        transformConfigJson
+        transformConfigJson,
+        segmentsJson
       );
     } catch (err) {
       console.error('ZIP processing error:', err);
@@ -209,7 +215,7 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
       setError(null);
       
       // Load all files in parallel
-      const [errorsRes, policiesRes, templatesRes, aliasesRes, shardsRes, allocationRes, settingsRes, nodesStatsRes, pipelinesRes, transformStatsRes] = await Promise.all([
+      const [errorsRes, policiesRes, templatesRes, aliasesRes, shardsRes, allocationRes, settingsRes, nodesStatsRes, pipelinesRes, transformStatsRes, segmentsRes] = await Promise.all([
         fetch('/ilm_explain_only_errors.json'),
         fetch('/ilm_policies.json'),
         fetch('/index_templates.json'),
@@ -219,10 +225,11 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
         fetch('/settings.json'),
         fetch('/nodes_stats.json'),
         fetch('/pipelines.json'),
-        fetch('/transform_stats.json')
+        fetch('/transform_stats.json'),
+        fetch('/segments.json')
       ]);
       
-      const [errorsJson, policiesJson, templatesJson, aliasesJson, shardsJson, allocationJson, settingsJson, nodesStatsJson, pipelinesJson, transformStatsJson] = await Promise.all([
+      const [errorsJson, policiesJson, templatesJson, aliasesJson, shardsJson, allocationJson, settingsJson, nodesStatsJson, pipelinesJson, transformStatsJson, segmentsJson] = await Promise.all([
         errorsRes.json(),
         policiesRes.json(),
         templatesRes.json(),
@@ -232,7 +239,8 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
         settingsRes.json(),
         nodesStatsRes.json(),
         pipelinesRes.json(),
-        transformStatsRes.json()
+        transformStatsRes.json(),
+        segmentsRes.json()
       ]);
 
       // Store templates and aliases in localStorage
@@ -250,7 +258,8 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
         pipelinesJson,
         null, // ML data is only available from diagnostic ZIP
         transformStatsJson,
-        null // Transform config is only available from diagnostic ZIP
+        null, // Transform config is only available from diagnostic ZIP
+        segmentsJson
       );
     } catch (err) {
       setError('Failed to load demo data');
